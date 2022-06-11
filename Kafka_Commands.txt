@@ -1,0 +1,27 @@
+# Kafka Commands
+
+##Create kafka topic##
+./kafka-topics.sh --create --bootstrap-server node1.example.com:9092,node2.example.com:9092,node3.example.com:9092 --replication-factor 3 --partitions 3 --topic test_topic
+
+
+##List Kafka topic##
+./kafka-topics.sh --zookeeper sandbox.hortonworks.com:2181 --list
+
+
+##Describe Kafka topic##
+./kafka-topics.sh --describe --bootstrap-server node1.example.com:9092,node2.example.com:9092,node3.example.com:9092 --topic test_topic
+
+##Delete Kafka topic##
+./kafka-topics.sh --bootstrap-server node1.example.com:9092,node2.example.com:9092,node3.example.com:9092 --delete --topic test_topic
+
+##Kafka Producer##
+./kafka-console-producer.sh --bootstrap-server node1.example.com:9092,node2.example.com:9092,node3.example.com:9092 --topic test_topic
+
+##Kafka Consumer##
+./kafka-console-consumer.sh --bootstrap-server node1.example.com:9092,node2.example.com:9092,node3.example.com:9092 --topic test_topic --from-beginning
+
+##Change the replication factor of a topic##
+./kafka-topics.sh --bootstrap-server node1.example.com:9092,node2.example.com:9092,node3.example.com:9092 --alter --topic test_topic --replication-factor 3
+
+##Increase kafka partition##
+./kafka-topics.sh --alter --bootstrap-server node1.example.com:9092,node2.example.com:9092,node3.example.com:9092 --topic test_topic --partition 2
