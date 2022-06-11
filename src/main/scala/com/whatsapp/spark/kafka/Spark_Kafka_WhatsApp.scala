@@ -3,13 +3,13 @@ package com.whatsapp.spark.kafka
 import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 import org.apache.spark.sql.types.{StringType, StructType}
 import org.apache.spark.sql.functions.{col, from_json, window}
-case class Employee_Cloudera(name : String)
+case class Employee(name : String)
 
 object Spark_Kafka_WhatsApp {
 
   private val whatsapp: SendWhatsApp = new SendWhatsApp()
 
-  private def sendtoWhatsapp(batchDF : Dataset[Employee_Cloudera], batchId : Long): Unit = {
+  private def sendtoWhatsapp(batchDF : Dataset[Employee], batchId : Long): Unit = {
     batchDF.show()
     batchDF.collect().foreach(employee => {
       whatsapp.sendmessage( "Hello  " + employee.name)
@@ -32,7 +32,7 @@ object Spark_Kafka_WhatsApp {
     import spark.implicits._
     // logger.info("SparkSession created successfully")
 
-    val kafkaBootstrapServers = "c4648-node2.coelab.cloudera.com:9092,c4648-node3.coelab.cloudera.com:9092,c4648-node4.coelab.cloudera.com:9092" //args(0)
+    val kafkaBootstrapServers = "node1.example.com:9092,node2.example.com:9092,node3.example.com:9092" //args(0)
     val inputTopicNames = "test_topic" //args(1)
 
     val schema = new StructType()
@@ -60,12 +60,12 @@ object Spark_Kafka_WhatsApp {
 
     val nameDF = messageData.map(value => {
       val nameData : String = value.toString().split(":")(1).replace("}]]", "").replaceAll("^\"|\"$", "")
-      Employee_Cloudera(nameData)
+      Employee(nameData)
     })
 
     nameDF.printSchema()
 
-    val outputDF = nameDF.writeStream.foreachBatch((batchDF: Dataset[Employee_Cloudera], batchId : Long) => sendtoWhatsapp(batchDF, batchId))
+    val outputDF = nameDF.writeStream.foreachBatch((batchDF: Dataset[Employee], batchId : Long) => sendtoWhatsapp(batchDF, batchId))
       .outputMode("append")
 
     outputDF.start().awaitTermination()
