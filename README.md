@@ -5,6 +5,173 @@ Extract User input data from WEB API and send them to WhatsApp with Spark-Kafka 
 
 
 
+## Tech Stack
+
+* Logstash
+* Kafka
+* Spark Structured Streaming
+
+
+## Installation
+
+Install ElasticSearch 7.x on CentOS 7
+
+Step 1: Update CentOS 7 Linux
+
+```bash
+sudo yum -y update
+```
+
+Step 2: Install Java on CentOS 7
+
+```bash
+sudo yum -y install java-1.8.0-openjdk  java-1.8.0-openjdk-devel
+```
+
+Step 3: Add ElasticSearch Yum repository
+Add the repository for downloading ElasticSearch 7 packages to your CentOS 7 system.
+
+```bash
+cat <<EOF | sudo tee /etc/yum.repos.d/elasticsearch.repo
+[elasticsearch-7.x]
+name=Elasticsearch repository for 7.x packages
+baseurl=https://artifacts.elastic.co/packages/oss-7.x/yum
+gpgcheck=1
+gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
+enabled=1
+autorefresh=1
+type=rpm-md
+EOF
+```
+
+If you want to install Elasticsearch 6, replace all occurrences of 7 with 6. Once the repository is added, clear and update your YUM package index.
+
+```bash
+sudo yum clean all
+sudo yum makecache
+```    
+
+Step 4: Install ElasticSearch 7 on CentOS 7
+Finally install ElasticSearch 7.x on CentOS 7 machine. 
+
+```bash
+sudo yum -y install elasticsearch-oss
+```
+
+Let's confirm ElasticSearch 7 installation on CentOS 7:
+
+```bash
+# rpm -qi elasticsearch-oss
+Name        : elasticsearch-oss
+Epoch       : 0
+Version     : 7.10.2
+Release     : 1
+Architecture: x86_64
+Install Date: Tue Jun  7 18:33:58 2022
+Group       : Application/Internet
+Size        : 420252496
+License     : ASL 2.0
+Signature   : RSA/SHA512, Wed Jan 13 03:45:21 2021, Key ID d27d666cd88e42b4
+Source RPM  : elasticsearch-oss-7.10.2-1-src.rpm
+Build Date  : Wed Jan 13 00:54:36 2021
+Build Host  : packer-virtualbox-iso-1600176624
+Relocations : /usr
+Packager    : Elasticsearch
+Vendor      : Elasticsearch
+URL         : https://www.elastic.co/
+Summary     : Distributed RESTful search engine built for the cloud
+Description :
+Reference documentation can be found at
+  https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html
+  and the 'Elasticsearch: The Definitive Guide' book can be found at
+  https://www.elastic.co/guide/en/elasticsearch/guide/current/index.html
+```
+
+Step 4: Configure Java memory Limits
+You can set JVM options like memory limits by editing the file: /etc/elasticsearch/jvm.options
+
+Example below sets initial/maximum size of total heap space
+
+```bash
+$ sudo vi /etc/elasticsearch/jvm.options
+.....
+-Xms1g
+-Xmx1g
+```
+
+Step 5: Start and enable elasticsearch service on boot
+
+```bash
+sudo systemctl enable --now elasticsearch
+```
+
+Confirm that the service is running.
+
+```bash
+sudo systemctl status elasticsearch
+```
+
+Check if you can connect to ElasticSearch Service.
+
+```bash
+[root@c4648-node4 ~]# curl http://node4.example.com:9200
+{
+  "name" : "node4.example.com",
+  "cluster_name" : "elasticsearch",
+  "cluster_uuid" : "Ubudz1MzRhyxf_Xdsjdge",
+  "version" : {
+    "number" : "7.10.2",
+    "build_flavor" : "oss",
+    "build_type" : "rpm",
+    "build_hash" : "747e1cc71def077253878a59143c1f785afa92b9",
+    "build_date" : "2021-01-13T00:42:12.435326Z",
+    "build_snapshot" : false,
+    "lucene_version" : "8.7.0",
+    "minimum_wire_compatibility_version" : "6.8.0",
+    "minimum_index_compatibility_version" : "6.0.0-beta1"
+  },
+  "tagline" : "You Know, for Search"
+}
+```
+
+You should be able to create an index with curl.
+
+```bash
+curl -X PUT "http://node4.example.com:9200/my_test_index"
+{"acknowledged":true,"shards_acknowledged":true,"index":"my_test_index"}
+```
+
+Step 6: Install Kibana 7 on CentOS 7
+
+```bash
+sudo yum install kibana-oss logstash
+```
+
+After a successful installation, configure Kibana:
+
+```bash
+$ sudo vi /etc/kibana/kibana.yml
+server.host: "http://node4.example.com"
+server.name: "kibana.example.com"
+elasticsearch.url: ["http://node4.example.com:9200"]
+```
+
+Change other settings as desired then start kibana service:
+
+```bash
+sudo systemctl enable --now kibana
+```
+
+If you have an active firewall, you’ll need to allow access to Kibana port:
+
+```bash
+sudo firewall-cmd --add-port=5601/tcp --permanent
+sudo firewall-cmd --reload
+```
+
+Access http://ip-address:5601 to open Kibana Dashboard:
+
+![KibanaUI](https://github.com/deepakpanda93/SparkStreaming-Kafka-ElasticSearch-WhatsApp/blob/master/src/main/assets/KibanaUI_new.png?raw=true) 
 ## Usage/Examples
 
 1) Create a Kafka topic.
@@ -267,19 +434,30 @@ Check your whatsapp AND BOOM !!!!
 
 
 
+## Screenshots
+
+### Logstash Ingested Data
+
+![App Screenshot](https://github.com/deepakpanda93/SparkStreaming-Kafka-ElasticSearch-WhatsApp/blob/master/src/main/assets/logstashData_1.png?raw=true)
+![App Screenshot](https://github.com/deepakpanda93/SparkStreaming-Kafka-ElasticSearch-WhatsApp/blob/master/src/main/assets/logstashData_2.png?raw=true)
+![App Screenshot](https://github.com/deepakpanda93/SparkStreaming-Kafka-ElasticSearch-WhatsApp/blob/master/src/main/assets/logstashData_3.png?raw=true)
+![App Screenshot](https://github.com/deepakpanda93/SparkStreaming-Kafka-ElasticSearch-WhatsApp/blob/master/src/main/assets/logstashData_4.png?raw=true)
+![App Screenshot](https://github.com/deepakpanda93/SparkStreaming-Kafka-ElasticSearch-WhatsApp/blob/master/src/main/assets/logstashData_5.png?raw=true)
+![App Screenshot](https://github.com/deepakpanda93/SparkStreaming-Kafka-ElasticSearch-WhatsApp/blob/master/src/main/assets/logstashData_6.png?raw=true)
+
+
+### Spark Streaming Ingested Data
+
+![App Screenshot](https://github.com/deepakpanda93/SparkStreaming-Kafka-ElasticSearch-WhatsApp/blob/master/src/main/assets/SparkStreamingData_1.png?raw=true)
+![App Screenshot](https://github.com/deepakpanda93/SparkStreaming-Kafka-ElasticSearch-WhatsApp/blob/master/src/main/assets/SparkStreamingData_2.png?raw=true)
+![App Screenshot](https://github.com/deepakpanda93/SparkStreaming-Kafka-ElasticSearch-WhatsApp/blob/master/src/main/assets/SparkStreamingData_3.png?raw=true)
+![App Screenshot](https://github.com/deepakpanda93/SparkStreaming-Kafka-ElasticSearch-WhatsApp/blob/master/src/main/assets/SparkStreamingData_4.png?raw=true)
+![App Screenshot](https://github.com/deepakpanda93/SparkStreaming-Kafka-ElasticSearch-WhatsApp/blob/master/src/main/assets/SparkStreamingData_5.png?raw=true)
+
+
 ## Demo
 
 To be uploaded
-
-
-## Screenshots
-
-![App Screenshot](https://via.placeholder.com/468x300?text=App+Screenshot+Here)
-
-
-## Tech Stack
-
-** Logstash, Kafka, Spark Structured Streaming **
 
 
 ## 🚀 About Me
