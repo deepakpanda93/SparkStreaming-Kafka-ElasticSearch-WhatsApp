@@ -114,7 +114,7 @@ sudo systemctl status elasticsearch
 Check if you can connect to ElasticSearch Service.
 
 ```bash
-[root@c4648-node4 ~]# curl http://node4.example.com:9200
+curl http://node4.example.com:9200
 {
   "name" : "node4.example.com",
   "cluster_name" : "elasticsearch",
